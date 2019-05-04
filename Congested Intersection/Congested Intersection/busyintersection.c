@@ -91,9 +91,21 @@ ints_tuple get_next_number(const char * line) {
     return temp;
 }
 
+int subtractions_uints(uint x, uint y) {
+    if (x >= y) {
+        return x - y;
+    }
+    return y - x;
+}
+
 
 // ##### GETTER FUNCTIONS #####
-
+int get_distance(struct trip * this) {
+    position * start = this->car->position;
+    position * end = this->ending_position;
+    
+    return subtractions_uints(start->row, end->row) + subtractions_uints(start->col, end->col);
+}
 
 
 // ##### SETTER FUNCTIONS #####
@@ -121,6 +133,11 @@ void set_simulation_uints(struct simulation * this, FILE * file) {
     free(line);
 }
 
+void set_position_from_position(position * this, position * other) {
+    this->row = other->row;
+    this->col = other->col;
+}
+
 
 // ########## CREATE STRUCTS FUNCTIONS ##########
 
@@ -134,6 +151,12 @@ position * position_new(uint row, uint column) {
     return this;
 }
 
+position * position_copy(position * other) {
+    position * this = malloc(sizeof(position));
+    this->row = other->row;
+    this->col = other->col;
+    return this;
+}
 
 /* Constructor: returns the null pointer in case of failure.
  * Creates a car object.
@@ -176,9 +199,11 @@ struct trip * trip_new(FILE * file, struct car * cars[]) {
     this->ending_position = position_new(r, c);
     
     free(line);
-    this ->starting_position = NULL;
-    this->distance = 0;
     this->next_trip = NULL;
+    this ->starting_position = position_copy(this->car->position);
+    this->distance = get_distance(this);
+    set_position_from_position(this->car->position, this->ending_position);
+    
     
     return this;
 }
