@@ -8,14 +8,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-//#include <types.h>
 #include "busyintersection.h"
 
 
 // ########## STRUCTS ##########
 typedef struct {
-    uint col;
     uint row;
+    uint col;
 } position;
 
 struct car {
@@ -75,7 +74,7 @@ ints_tuple get_next_number(const char * line) {
     char * buffer = malloc(buffer_len*sizeof(char));
     int i=0;
     
-//    while (line[i] != ' ' || line[i] != '\n' || line[i] != '\n') {
+    
     while (line[i] != ' ' && line[i] != '\0') {
 //        printf("%c @ %d\n", line[i], line[i]);
         if (i >= buffer_len) {
@@ -174,13 +173,12 @@ struct trip * trip_new(FILE * file, struct car * cars[]) {
     temp = get_next_number(&line[offset]);
     offset += temp.len;
     uint c = temp.n;
-    this->starting_position = position_new(r, c);
+    this->ending_position = position_new(r, c);
     
     free(line);
-    this ->ending_position = NULL;
+    this ->starting_position = NULL;
     this->distance = 0;
     this->next_trip = NULL;
-    
     
     return this;
 }
@@ -197,7 +195,6 @@ struct simulation * si_new(char * filename) {
         perror("Error trying to create the simulation");
         return NULL;
     }
-    
     
     set_simulation_uints(this, file);
     int n_cars = this->n_cars;
@@ -223,14 +220,12 @@ struct simulation * si_new(char * filename) {
     struct trip * new = old;
     this->first_trip = old;
     
-    for (int i=0; i < n_trips; ++i) {
+    for (int i=1; i < n_trips; ++i) {
         new = trip_new(file, cars);
         old->next_trip = new;
         old = new;
     }
-    
     return this;
-    
 }
 
 
@@ -245,7 +240,6 @@ void position_delete(position * this) {
 
 /* Destructor: clear all memory allocated for the given car. */
 void car_delete(struct car * this) {
-    
     if (this) {
         position_delete(this->position);
         if (this->next_car) {
@@ -254,7 +248,6 @@ void car_delete(struct car * this) {
         }
         free(this);
     }
-    
 }
 
 /* Destructor: clear all memory allocated for the given trip. */

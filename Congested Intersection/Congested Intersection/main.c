@@ -5,7 +5,7 @@
 
 
 int main(){
-    struct simulation *s = si_new("tripset1.in");
+    struct simulation *s = si_new("tripset2.in");
     if(s == NULL)
         return 0;
 //    assert(si_get_congestion(s, 0,0, 0,0) ==1);
