@@ -366,17 +366,17 @@ int si_get_congestion(struct simulation * s, unsigned long start, unsigned long 
     
     struct trip * current = s->first_trip;
     int counter = 0;
-    printf("CORNER: x=%u, y=%u\n", x, y);
-    printf("TIME: [%lu, %lu]\n", start, end);
+//    printf("CORNER: x=%u, y=%u\n", y, x);
+//    printf("TIME: [%lu, %lu]\n", start, end);
     while (current) {
-        printf("\nCurrent is: %lu @Time %lu + %lu\n", current->carID, current->time_start, current->distance);
-        printf("\tPosition x=%lu, y=%lu", current->starting_position->x, current->starting_position->y);
-        printf("\t --> x=%lu, y=%lu\n", current->ending_position->x, current->ending_position->y);
-        if (check_corner(current->starting_position, current->ending_position, x, y)) {
-            unsigned long time = get_time_at_corner(current->time_start , current->starting_position, x, y);
-            printf("\t --> Corner: yes @ Time %lu\n", time);
+//        printf("\nCurrent is: %lu @Time %lu + %lu\n", current->carID, current->time_start, current->distance);
+//        printf("\tPosition x=%lu, y=%lu", current->starting_position->x, current->starting_position->y);
+//        printf("\t --> x=%lu, y=%lu\n", current->ending_position->x, current->ending_position->y);
+        if (check_corner(current->starting_position, current->ending_position, y, x)) {
+            unsigned long time = get_time_at_corner(current->time_start , current->starting_position, y, x);
+//            printf("\t --> Corner: yes @ Time %lu\n", time);
             if (check_time(time, start, end)) {
-                printf("\t --> Time: yes\n");
+//                printf("\t --> Time: yes\n");
                 ++counter;
             }
         }
