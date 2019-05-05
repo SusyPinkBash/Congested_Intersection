@@ -50,6 +50,10 @@ typedef struct {
 } ints_tuple;
 
 
+// ########## FUNCTIONS DECARATIONS ##########
+position * position_new(unsigned long row, unsigned long column);
+void position_delete(position * this);
+
 
 // ########## HELPER FUNCTIONS ##########
 
@@ -99,8 +103,36 @@ unsigned long subtractions(unsigned long x, unsigned long y) {
     return y - x;
 }
 
-int overlaps(struct trip * trip, unsigned long start, unsigned long end) {
-    
+int check_corner(position * start, position * end, unsigned long c, unsigned long r) {
+    if (r == start->row) {
+        unsigned long c0, c1;
+        if (start->col <= end->col) {
+            c0 = start->col;
+            c1 = end->col;
+        }
+        else {
+            c0 = end->col;
+            c1 = start->col;
+        }
+        return (c >= c0 && c <= c1);
+    }
+    else if (c == start->col) {
+        unsigned long r0, r1;
+        if (start->row <= end->row) {
+            r0 = start->row;
+            r1 = end->row;
+        }
+        else {
+            r0 = end->row;
+            r1 = start->row;
+        }
+        return (r >= r0 && r <= r1);
+    }
+    return 0;
+}
+
+int check_time(unsigned long time, unsigned long start, unsigned long end) {
+    return (time >= start && time <= end);
 }
 
 
@@ -109,6 +141,14 @@ int overlaps(struct trip * trip, unsigned long start, unsigned long end) {
 /* calculates the distance of two points on the map */
 unsigned long get_distance(position * start, position * end) {
     return subtractions(start->row, end->row) + subtractions(start->col, end->col);
+}
+
+unsigned long get_time_at_corner(unsigned long time_start, position * starting_position, unsigned long c, unsigned long r) {
+    position * ending_position = position_new(r, c);
+    unsigned long distance = get_distance(starting_position, ending_position);
+    position_delete(ending_position);
+    return time_start + distance;
+    
 }
 
 
@@ -323,10 +363,21 @@ int si_get_congestion(struct simulation * s, unsigned long start, unsigned long 
                       unsigned x, unsigned y) {
     
     struct trip * current = s->first_trip;
+    int counter = 0;
+    printf("CORNER: (%lu, %lu)\n", x, y);
+    printf("TIME: (%lu, %lu)\n", start, end);
     while (current) {
-        
-        
+        printf("\nCurrent is: %lu\n", current->carID);
+        printf("\tStart @(%lu, %lu)\n", current->car->position->col, current->car->position->row);
+        if (check_corner(current->starting_position, current->ending_position, x, y)) {
+            printf("\t --> Corner: yes\n");
+            unsigned long time = get_time_at_corner(current->time_start , current->starting_position, x, y);
+            if (check_time(time, start, end)) {
+                printf("\t --> Time: yes\n");
+                ++counter;
+            }
+        }
         current = current->next_trip;
     }
-    return 0;
+    return counter;
 }
