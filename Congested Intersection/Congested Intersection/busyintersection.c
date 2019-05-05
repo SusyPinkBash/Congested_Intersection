@@ -13,8 +13,8 @@
 
 // ########## STRUCTS ##########
 typedef struct {
-    unsigned long row;
-    unsigned long col;
+    unsigned long y;
+    unsigned long x;
 } position;
 
 struct car {
@@ -103,30 +103,32 @@ unsigned long subtractions(unsigned long x, unsigned long y) {
     return y - x;
 }
 
-int check_corner(position * start, position * end, unsigned long c, unsigned long r) {
-    if (r == start->row) {
-        unsigned long c0, c1;
-        if (start->col <= end->col) {
-            c0 = start->col;
-            c1 = end->col;
+int check_corner(position * start, position * end, unsigned long x, unsigned long y) {
+    if (y == start->y) {
+        unsigned long x0, x1;
+        if (start->x <= end->x) {
+            x0 = start->x;
+            x1 = end->x;
         }
         else {
-            c0 = end->col;
-            c1 = start->col;
+            x0 = end->x;
+            x1 = start->x;
         }
-        return (c >= c0 && c <= c1);
+        return (x >= x0 && x <= x1);
     }
-    else if (c == start->col) {
-        unsigned long r0, r1;
-        if (start->row <= end->row) {
-            r0 = start->row;
-            r1 = end->row;
+    if (x == end->x) {
+        unsigned long y0, y1;
+        if (start->y <= end->y) {
+            y0 = start->y;
+            y1 = end->y;
         }
         else {
-            r0 = end->row;
-            r1 = start->row;
+            y0 = end->y;
+            y1 = start->y;
         }
-        return (r >= r0 && r <= r1);
+//        if (y >= y0 && y <= y1)
+//            return 1;
+        return (y >= y0 && y <= y1);
     }
     return 0;
 }
@@ -140,13 +142,13 @@ int check_time(unsigned long time, unsigned long start, unsigned long end) {
 
 /* calculates the distance of two points on the map */
 unsigned long get_distance(position * start, position * end) {
-    return subtractions(start->row, end->row) + subtractions(start->col, end->col);
+    return subtractions(start->y, end->y) + subtractions(start->x, end->x);
 }
 
 unsigned long get_time_at_corner(unsigned long time_start, position * starting_position, unsigned long c, unsigned long r) {
-    position * ending_position = position_new(r, c);
-    unsigned long distance = get_distance(starting_position, ending_position);
-    position_delete(ending_position);
+    position * position_to_check = position_new(r, c);
+    unsigned long distance = get_distance(starting_position, position_to_check);
+    position_delete(position_to_check);
     return time_start + distance;
     
 }
@@ -180,8 +182,8 @@ void set_simulation_ints(struct simulation * this, FILE * file) {
 
 /* set positions equal to another given position */
 void set_position_from_position(position * this, position * other) {
-    this->row = other->row;
-    this->col = other->col;
+    this->y = other->y;
+    this->x = other->x;
 }
 
 
@@ -192,15 +194,15 @@ void set_position_from_position(position * this, position * other) {
  */
 position * position_new(unsigned long row, unsigned long column) {
     position * this = malloc(sizeof(position));
-    this->row = row;
-    this->col = column;
+    this->y = row;
+    this->x = column;
     return this;
 }
 
 position * position_copy(position * other) {
     position * this = malloc(sizeof(position));
-    this->row = other->row;
-    this->col = other->col;
+    this->y = other->y;
+    this->x = other->x;
     return this;
 }
 
@@ -364,14 +366,15 @@ int si_get_congestion(struct simulation * s, unsigned long start, unsigned long 
     
     struct trip * current = s->first_trip;
     int counter = 0;
-    printf("CORNER: (%lu, %lu)\n", x, y);
-    printf("TIME: (%lu, %lu)\n", start, end);
+    printf("CORNER: x=%u, y=%u\n", x, y);
+    printf("TIME: [%lu, %lu]\n", start, end);
     while (current) {
-        printf("\nCurrent is: %lu\n", current->carID);
-        printf("\tStart @(%lu, %lu)\n", current->car->position->col, current->car->position->row);
+        printf("\nCurrent is: %lu @Time %lu + %lu\n", current->carID, current->time_start, current->distance);
+        printf("\tPosition x=%lu, y=%lu", current->starting_position->x, current->starting_position->y);
+        printf("\t --> x=%lu, y=%lu\n", current->ending_position->x, current->ending_position->y);
         if (check_corner(current->starting_position, current->ending_position, x, y)) {
-            printf("\t --> Corner: yes\n");
             unsigned long time = get_time_at_corner(current->time_start , current->starting_position, x, y);
+            printf("\t --> Corner: yes @ Time %lu\n", time);
             if (check_time(time, start, end)) {
                 printf("\t --> Time: yes\n");
                 ++counter;
