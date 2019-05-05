@@ -13,31 +13,31 @@
 
 // ########## STRUCTS ##########
 typedef struct {
-    uint row;
-    uint col;
+    unsigned long row;
+    unsigned long col;
 } position;
 
 struct car {
-    uint carID;
+    unsigned long carID;
     position * position;
     struct car * next_car;
 };
 
 struct trip {
-    uint carID;
+    unsigned long carID;
     struct car * car;
-    uint time_start;
+    unsigned long time_start;
     position * starting_position;
     position * ending_position;
-    uint distance;
+    unsigned long distance;
     struct trip * next_trip;
 };
 
 struct simulation {
-    uint colums;
-    uint rows;
-    uint n_cars;
-    uint n_trips;
+    unsigned long colums;
+    unsigned long rows;
+    unsigned long n_cars;
+    unsigned long n_trips;
     struct car * first_car;
     struct trip * first_trip;
 };
@@ -91,25 +91,30 @@ ints_tuple get_next_number(const char * line) {
     return temp;
 }
 
-int subtractions_uints(uint x, uint y) {
+/* subtracts two unsigned longs  */
+unsigned long subtractions(unsigned long x, unsigned long y) {
     if (x >= y) {
         return x - y;
     }
     return y - x;
 }
 
+int overlaps(struct trip * trip, unsigned long start, unsigned long end) {
+    
+}
+
 
 // ##### GETTER FUNCTIONS #####
-int get_distance(struct trip * this) {
-    position * start = this->car->position;
-    position * end = this->ending_position;
-    
-    return subtractions_uints(start->row, end->row) + subtractions_uints(start->col, end->col);
+
+/* calculates the distance of two points on the map */
+unsigned long get_distance(position * start, position * end) {
+    return subtractions(start->row, end->row) + subtractions(start->col, end->col);
 }
 
 
 // ##### SETTER FUNCTIONS #####
-void set_simulation_uints(struct simulation * this, FILE * file) {
+/* sets all the numbers in the simulation struct  */
+void set_simulation_ints(struct simulation * this, FILE * file) {
     /* Read first line with data about the simulation*/
     char * line = malloc(15*sizeof(char));
     line = file_to_buffer(file, line, '\n', 15);
@@ -133,6 +138,7 @@ void set_simulation_uints(struct simulation * this, FILE * file) {
     free(line);
 }
 
+/* set positions equal to another given position */
 void set_position_from_position(position * this, position * other) {
     this->row = other->row;
     this->col = other->col;
@@ -144,7 +150,7 @@ void set_position_from_position(position * this, position * other) {
 /* Constructor: returns the null pointer in case of failure.
  * Creates a position object.
  */
-position * position_new(uint row, uint column) {
+position * position_new(unsigned long row, unsigned long column) {
     position * this = malloc(sizeof(position));
     this->row = row;
     this->col = column;
@@ -164,7 +170,7 @@ position * position_copy(position * other) {
 struct car * car_new(int carID) {
     struct car * this = malloc(sizeof(struct car));
     
-    this->carID = (uint) carID;
+    this->carID = (unsigned long) carID;
     this->position = position_new(0, 0);
     this->next_car = NULL;
     
@@ -192,16 +198,16 @@ struct trip * trip_new(FILE * file, struct car * cars[]) {
     
     temp = get_next_number(&line[offset]);
     offset += temp.len;
-    uint r = temp.n;
+    unsigned long r = temp.n;
     temp = get_next_number(&line[offset]);
     offset += temp.len;
-    uint c = temp.n;
+    unsigned long c = temp.n;
     this->ending_position = position_new(r, c);
     
     free(line);
     this->next_trip = NULL;
     this ->starting_position = position_copy(this->car->position);
-    this->distance = get_distance(this);
+    this->distance = get_distance(this->car->position, this->ending_position);
     set_position_from_position(this->car->position, this->ending_position);
     
     
@@ -221,9 +227,9 @@ struct simulation * si_new(char * filename) {
         return NULL;
     }
     
-    set_simulation_uints(this, file);
-    int n_cars = this->n_cars;
-    int n_trips = this->n_trips;
+    set_simulation_ints(this, file);
+    unsigned long n_cars = this->n_cars;
+    unsigned long n_trips = this->n_trips;
     
     struct car * cars[n_cars];
     
@@ -306,4 +312,21 @@ void si_delete(struct simulation * s) {
         }
         free(s);
     }
+}
+
+// ########## CALCULATE CONGESTION ##########
+
+/* Returns the number of cars passed the square (x,y),
+ * starting from time "start", up to time "end".
+ */
+int si_get_congestion(struct simulation * s, unsigned long start, unsigned long end,
+                      unsigned x, unsigned y) {
+    
+    struct trip * current = s->first_trip;
+    while (current) {
+        
+        
+        current = current->next_trip;
+    }
+    return 0;
 }
