@@ -363,6 +363,8 @@ void si_delete(struct simulation * s) {
  */
 int si_get_congestion(struct simulation * s, unsigned long start, unsigned long end,
                       unsigned x, unsigned y) {
+    if (!(x<s->colums && y<s->rows))
+        return -1;
     
     struct trip * current = s->first_trip;
     int counter = 0;
