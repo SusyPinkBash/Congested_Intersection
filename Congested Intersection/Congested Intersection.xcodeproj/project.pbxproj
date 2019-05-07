@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D421F1512281B8BF0089989A /* busyintersection.c in Sources */ = {isa = PBXBuildFile; fileRef = D421F1502281B8BF0089989A /* busyintersection.c */; };
 		D4CD21A2227B1E620001557D /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = D4CD21A1227B1E620001557D /* main.c */; };
-		D4CD21AA227B20080001557D /* busyintersection.c in Sources */ = {isa = PBXBuildFile; fileRef = D4CD21A9227B20080001557D /* busyintersection.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,10 +24,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D421F1502281B8BF0089989A /* busyintersection.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = busyintersection.c; sourceTree = "<group>"; };
 		D4CD219E227B1E620001557D /* Congested Intersection */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Congested Intersection"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4CD21A1227B1E620001557D /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		D4CD21A8227B20080001557D /* busyintersection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = busyintersection.h; sourceTree = "<group>"; };
-		D4CD21A9227B20080001557D /* busyintersection.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = busyintersection.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,7 +62,7 @@
 			children = (
 				D4CD21A1227B1E620001557D /* main.c */,
 				D4CD21A8227B20080001557D /* busyintersection.h */,
-				D4CD21A9227B20080001557D /* busyintersection.c */,
+				D421F1502281B8BF0089989A /* busyintersection.c */,
 			);
 			path = "Congested Intersection";
 			sourceTree = "<group>";
@@ -124,7 +124,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D4CD21A2227B1E620001557D /* main.c in Sources */,
-				D4CD21AA227B20080001557D /* busyintersection.c in Sources */,
+				D421F1512281B8BF0089989A /* busyintersection.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

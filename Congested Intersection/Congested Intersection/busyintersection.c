@@ -13,8 +13,8 @@
 
 // ########## STRUCTS ##########
 typedef struct {
-    unsigned long y;
-    unsigned long x;
+    unsigned long columns;
+    unsigned long rows;
 } position;
 
 struct car {
@@ -104,27 +104,27 @@ unsigned long subtractions(unsigned long x, unsigned long y) {
 }
 
 int check_corner(position * start, position * end, unsigned long x, unsigned long y) {
-    if (y == start->y) {
+    if (y == start->columns) {
         unsigned long x0, x1;
-        if (start->x <= end->x) {
-            x0 = start->x;
-            x1 = end->x;
+        if (start->rows <= end->rows) {
+            x0 = start->rows;
+            x1 = end->rows;
         }
         else {
-            x0 = end->x;
-            x1 = start->x;
+            x0 = end->rows;
+            x1 = start->rows;
         }
         return (x >= x0 && x <= x1);
     }
-    if (x == end->x) {
+    if (x == end->rows) {
         unsigned long y0, y1;
-        if (start->y <= end->y) {
-            y0 = start->y;
-            y1 = end->y;
+        if (start->columns <= end->columns) {
+            y0 = start->columns;
+            y1 = end->columns;
         }
         else {
-            y0 = end->y;
-            y1 = start->y;
+            y0 = end->columns;
+            y1 = start->columns;
         }
 //        if (y >= y0 && y <= y1)
 //            return 1;
@@ -142,7 +142,7 @@ int check_time(unsigned long time, unsigned long start, unsigned long end) {
 
 /* calculates the distance of two points on the map */
 unsigned long get_distance(position * start, position * end) {
-    return subtractions(start->y, end->y) + subtractions(start->x, end->x);
+    return subtractions(start->columns, end->columns) + subtractions(start->rows, end->rows);
 }
 
 unsigned long get_time_at_corner(unsigned long time_start, position * starting_position, unsigned long c, unsigned long r) {
@@ -182,8 +182,8 @@ void set_simulation_ints(struct simulation * this, FILE * file) {
 
 /* set positions equal to another given position */
 void set_position_from_position(position * this, position * other) {
-    this->y = other->y;
-    this->x = other->x;
+    this->columns = other->columns;
+    this->rows = other->rows;
 }
 
 
@@ -194,15 +194,15 @@ void set_position_from_position(position * this, position * other) {
  */
 position * position_new(unsigned long row, unsigned long column) {
     position * this = malloc(sizeof(position));
-    this->y = row;
-    this->x = column;
+    this->columns = row;
+    this->rows = column;
     return this;
 }
 
 position * position_copy(position * other) {
     position * this = malloc(sizeof(position));
-    this->y = other->y;
-    this->x = other->x;
+    this->columns = other->columns;
+    this->rows = other->rows;
     return this;
 }
 
@@ -363,7 +363,9 @@ void si_delete(struct simulation * s) {
  */
 int si_get_congestion(struct simulation * s, unsigned long start, unsigned long end,
                       unsigned x, unsigned y) {
-    if (!(x<s->colums && y<s->rows))
+//    if (!(x<s->colums && y<s->rows))
+//        return -1;
+    if (!(x<s->rows && y<s->colums))
         return -1;
     
     struct trip * current = s->first_trip;
