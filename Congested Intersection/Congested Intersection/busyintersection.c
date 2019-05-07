@@ -103,8 +103,9 @@ unsigned long subtractions(unsigned long x, unsigned long y) {
     return y - x;
 }
 
+/* Cheks if a car drives through an intersection given the position and coordinates */
 int check_corner(position * start, position * end, unsigned long x, unsigned long y) {
-    if (y == start->column) {
+    if (x == start->column) {
         unsigned x0, x1;
         if (start->row <= end->row) {
             x0 = start->row;
@@ -114,9 +115,9 @@ int check_corner(position * start, position * end, unsigned long x, unsigned lon
             x0 = end->row;
             x1 = start->row;
         }
-        return (x >= x0 && x <= x1);
+        return (y >= x0 && y <= x1);
     }
-    if (x == end->row) {
+    if (y == end->row) {
         unsigned y0, y1;
         if (start->column <= end->column) {
             y0 = start->column;
@@ -126,13 +127,14 @@ int check_corner(position * start, position * end, unsigned long x, unsigned lon
             y0 = end->column;
             y1 = start->column;
         }
-//        if (y >= y0 && y <= y1)
-//            return 1;
-        return (y >= y0 && y <= y1);
+        
+        return (x >= y0 && x <= y1);
     }
     return 0;
 }
 
+
+/*  Checks if a time is a given time period */
 int check_time(unsigned long time, unsigned long start, unsigned long end) {
     return (time >= start && time <= end);
 }
@@ -140,13 +142,14 @@ int check_time(unsigned long time, unsigned long start, unsigned long end) {
 
 // ##### GETTER FUNCTIONS #####
 
-/* calculates the distance of two points on the map */
+/* Calculates the distance of two points on the map */
 unsigned long get_distance(position * start, position * end) {
     return subtractions(start->column, end->column) + subtractions(start->row, end->row);
 }
 
 unsigned long get_time_at_corner(unsigned long time_start, position * starting_position, unsigned c, unsigned r) {
-    position * position_to_check = position_new(r, c);
+    position * position_to_check = position_new(c, r);
+    
     unsigned long distance = get_distance(starting_position, position_to_check);
     position_delete(position_to_check);
     return time_start + distance;
@@ -155,7 +158,8 @@ unsigned long get_time_at_corner(unsigned long time_start, position * starting_p
 
 
 // ##### SETTER FUNCTIONS #####
-/* sets all the numbers in the simulation struct  */
+
+/* Sets all the numbers in the simulation struct  */
 void set_simulation_ints(struct simulation * this, FILE * file) {
     /* Read first line with data about the simulation*/
     char * line = malloc(15*sizeof(char));
@@ -180,7 +184,7 @@ void set_simulation_ints(struct simulation * this, FILE * file) {
     free(line);
 }
 
-/* set positions equal to another given position */
+/* Set positions equal to another given position */
 void set_position_from_position(position * this, position * other) {
     this->column = other->column;
     this->row = other->row;
@@ -199,6 +203,7 @@ position * position_new(unsigned column, unsigned row) {
     return this;
 }
 
+/* Creates a copy of a typedef struct position */
 position * position_copy(position * other) {
     position * this = malloc(sizeof(position));
     this->column = other->column;
@@ -247,18 +252,17 @@ struct trip * trip_new(FILE * file, struct car * cars[], unsigned long n_cars) {
     
     temp = get_next_number(&line[offset]);
     offset += temp.len;
-    unsigned r = temp.n;
+    unsigned c = temp.n;
     temp = get_next_number(&line[offset]);
     offset += temp.len;
-    unsigned c = temp.n;
-    this->ending_position = position_new(r, c);
+    unsigned r = temp.n;
+    this->ending_position = position_new(c, r);
     
     free(line);
     this->next_trip = NULL;
     this ->starting_position = position_copy(this->car->position);
     this->distance = get_distance(this->car->position, this->ending_position);
     set_position_from_position(this->car->position, this->ending_position);
-    
     
     return this;
 }
@@ -422,17 +426,10 @@ int si_get_congestion(struct simulation * s, unsigned long start, unsigned long 
     
     struct trip * current = s->first_trip;
     int counter = 0;
-//    printf("CORNER: x=%u, y=%u\n", y, x);
-//    printf("TIME: [%lu, %lu]\n", start, end);
     while (current) {
-//        printf("\nCurrent is: %lu @Time %lu + %lu\n", current->carID, current->time_start, current->distance);
-//        printf("\tPosition x=%lu, y=%lu", current->starting_position->x, current->starting_position->y);
-//        printf("\t --> x=%lu, y=%lu\n", current->ending_position->x, current->ending_position->y);
-        if (check_corner(current->starting_position, current->ending_position, y, x)) {
-            unsigned long time = get_time_at_corner(current->time_start , current->starting_position, y, x);
-//            printf("\t --> Corner: yes @ Time %lu\n", time);
+        if (check_corner(current->starting_position, current->ending_position, x, y)) {
+            unsigned long time = get_time_at_corner(current->time_start , current->starting_position, x, y);
             if (check_time(time, start, end)) {
-//                printf("\t --> Time: yes\n");
                 ++counter;
             }
         }
