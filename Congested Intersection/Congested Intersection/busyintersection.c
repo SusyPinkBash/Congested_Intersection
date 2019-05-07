@@ -13,8 +13,8 @@
 
 // ########## STRUCTS ##########
 typedef struct {
-    unsigned long columns;
-    unsigned long rows;
+    unsigned column;
+    unsigned row;
 } position;
 
 struct car {
@@ -34,8 +34,8 @@ struct trip {
 };
 
 struct simulation {
-    unsigned long colums;
-    unsigned long rows;
+    unsigned columns;
+    unsigned rows;
     unsigned long n_cars;
     unsigned long n_trips;
     struct car * first_car;
@@ -51,7 +51,7 @@ typedef struct {
 
 
 // ########## FUNCTIONS DECARATIONS ##########
-position * position_new(unsigned long row, unsigned long column);
+position * position_new(unsigned row, unsigned column);
 void position_delete(position * this);
 
 
@@ -104,27 +104,27 @@ unsigned long subtractions(unsigned long x, unsigned long y) {
 }
 
 int check_corner(position * start, position * end, unsigned long x, unsigned long y) {
-    if (y == start->columns) {
-        unsigned long x0, x1;
-        if (start->rows <= end->rows) {
-            x0 = start->rows;
-            x1 = end->rows;
+    if (y == start->column) {
+        unsigned x0, x1;
+        if (start->row <= end->row) {
+            x0 = start->row;
+            x1 = end->row;
         }
         else {
-            x0 = end->rows;
-            x1 = start->rows;
+            x0 = end->row;
+            x1 = start->row;
         }
         return (x >= x0 && x <= x1);
     }
-    if (x == end->rows) {
-        unsigned long y0, y1;
-        if (start->columns <= end->columns) {
-            y0 = start->columns;
-            y1 = end->columns;
+    if (x == end->row) {
+        unsigned y0, y1;
+        if (start->column <= end->column) {
+            y0 = start->column;
+            y1 = end->column;
         }
         else {
-            y0 = end->columns;
-            y1 = start->columns;
+            y0 = end->column;
+            y1 = start->column;
         }
 //        if (y >= y0 && y <= y1)
 //            return 1;
@@ -142,10 +142,10 @@ int check_time(unsigned long time, unsigned long start, unsigned long end) {
 
 /* calculates the distance of two points on the map */
 unsigned long get_distance(position * start, position * end) {
-    return subtractions(start->columns, end->columns) + subtractions(start->rows, end->rows);
+    return subtractions(start->column, end->column) + subtractions(start->row, end->row);
 }
 
-unsigned long get_time_at_corner(unsigned long time_start, position * starting_position, unsigned long c, unsigned long r) {
+unsigned long get_time_at_corner(unsigned long time_start, position * starting_position, unsigned c, unsigned r) {
     position * position_to_check = position_new(r, c);
     unsigned long distance = get_distance(starting_position, position_to_check);
     position_delete(position_to_check);
@@ -163,7 +163,7 @@ void set_simulation_ints(struct simulation * this, FILE * file) {
     
     ints_tuple temp = get_next_number(line);
     int offset = temp.len;
-    this->colums = temp.n;
+    this->columns = temp.n;
     
     temp = get_next_number(&line[offset]);
     offset += temp.len;
@@ -182,8 +182,8 @@ void set_simulation_ints(struct simulation * this, FILE * file) {
 
 /* set positions equal to another given position */
 void set_position_from_position(position * this, position * other) {
-    this->columns = other->columns;
-    this->rows = other->rows;
+    this->column = other->column;
+    this->row = other->row;
 }
 
 
@@ -192,17 +192,17 @@ void set_position_from_position(position * this, position * other) {
 /* Constructor: returns the null pointer in case of failure.
  * Creates a position object.
  */
-position * position_new(unsigned long row, unsigned long column) {
+position * position_new(unsigned column, unsigned row) {
     position * this = malloc(sizeof(position));
-    this->columns = row;
-    this->rows = column;
+    this->column = column;
+    this->row = row;
     return this;
 }
 
 position * position_copy(position * other) {
     position * this = malloc(sizeof(position));
-    this->columns = other->columns;
-    this->rows = other->rows;
+    this->column = other->column;
+    this->row = other->row;
     return this;
 }
 
@@ -223,27 +223,34 @@ struct car * car_new(int carID) {
 /* Constructor: returns the null pointer in case of failure.
  * Creates a trip object.
  */
-struct trip * trip_new(FILE * file, struct car * cars[]) {
+struct trip * trip_new(FILE * file, struct car * cars[], unsigned long n_cars) {
     struct trip * this = malloc(sizeof(struct trip));
     
     char * line = malloc(15*sizeof(char));
     line = file_to_buffer(file, line, '\n', 15);
+//    printf("%s\n", line);
     
     ints_tuple temp = get_next_number(line);
     int offset = temp.len;
     this->carID = temp.n;
+    if (this->carID > n_cars)
+        return NULL;
     this->car = cars[temp.n];
     
     temp = get_next_number(&line[offset]);
     offset += temp.len;
+    if (temp.len > 1000000000) {
+        perror("The starting time is over 10^9\n");
+        return NULL;
+    }
     this->time_start = temp.n;
     
     temp = get_next_number(&line[offset]);
     offset += temp.len;
-    unsigned long r = temp.n;
+    unsigned r = temp.n;
     temp = get_next_number(&line[offset]);
     offset += temp.len;
-    unsigned long c = temp.n;
+    unsigned c = temp.n;
     this->ending_position = position_new(r, c);
     
     free(line);
@@ -273,6 +280,12 @@ struct simulation * si_new(char * filename) {
     unsigned long n_cars = this->n_cars;
     unsigned long n_trips = this->n_trips;
     
+    if ((this->columns > 100000) || (this->rows > 100000) || (n_cars > 1000) || (n_trips > 100000)) {
+        perror("Error: the numbers given are higher than the limitation defined by the program\n");
+        si_delete(this);
+        return NULL;
+    }
+    
     struct car * cars[n_cars];
     
     // cars linked list
@@ -289,12 +302,53 @@ struct simulation * si_new(char * filename) {
     }
     
     // trips linked list
-    struct trip * old = trip_new(file, cars);
+    struct trip * old = trip_new(file, cars, n_cars);
+    if (old == NULL || old->ending_position->column >= this->rows || old->ending_position->column >= this->rows){
+//        printf("columns: %u & rows %u\n", this->columns, this->rows);
+//        if (old == NULL) {
+//            printf("NULL\n");
+//        }
+//        if (old->ending_position->column >= this->columns) {
+//            printf("ending col = %u\n", old->ending_position->column);
+//        }
+//        if (old->ending_position->row >= this->rows) {
+//            printf("ending col = %u\n", old->ending_position->row);
+//
+//        }
+        return NULL;
+    }
     struct trip * new = old;
     this->first_trip = old;
     
     for (int i=1; i < n_trips; ++i) {
-        new = trip_new(file, cars);
+        new = trip_new(file, cars, n_cars);
+        if (new == NULL || new->ending_position->column >= this->rows || new->ending_position->row >= this->columns){
+//            printf("columns: %u & rows %u\n", this->columns, this->rows);
+//            if (new == NULL) {
+//                printf("NULL\n");
+//            }
+//            if (new->ending_position->column >= this->columns) {
+//                printf("ending col = %u\n", new->ending_position->column);
+//            }
+//            if (new->ending_position->row >= this->rows) {
+//                printf("ending col = %u\n", new->ending_position->row);
+//
+//            }
+            return NULL;
+        }
+//        if (new == NULL || new->ending_position->column >= this->rows || new->ending_position->row >= this->colums){
+//            if (new == NULL)
+//                perror("\tTRIP new null\n");
+//            if (new->ending_position->column > this->colums) {
+//                printf("%lu %lu %u %u\n", new->carID, new->time_start, new->ending_position->column, new->ending_position->row);
+//                perror("\tTRIP new col\n");
+//                printf("%u > %u\n", new->ending_position->column, this->colums);
+//            }
+//            if (new->ending_position->row > this->rows)
+//                perror("\tTRIP new row\n");
+//            si_delete(this);
+//            return NULL;
+//        }
         old->next_trip = new;
         old = new;
     }
@@ -363,9 +417,7 @@ void si_delete(struct simulation * s) {
  */
 int si_get_congestion(struct simulation * s, unsigned long start, unsigned long end,
                       unsigned x, unsigned y) {
-//    if (!(x<s->colums && y<s->rows))
-//        return -1;
-    if (!(x<s->rows && y<s->colums))
+    if (!(x<s->rows && y<s->columns))
         return -1;
     
     struct trip * current = s->first_trip;
